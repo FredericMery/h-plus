@@ -52,20 +52,19 @@ export default function SettingsPage() {
 
     const file = e.target.files[0];
 
-    // 🔹 Preview immédiate
     const localPreview = URL.createObjectURL(file);
     setPreviewAvatar(localPreview);
-
     setUploadStatus("Chargement...");
-    
-    try {
-      const filePath = `${user.id}`;
 
-      const { error } = await supabase.storage
+    try {
+      const filePath = `${user.id}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true });
 
-      if (error) {
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
         setUploadStatus("Chargement NOK");
         return;
       }
@@ -74,10 +73,16 @@ export default function SettingsPage() {
         .from("avatars")
         .getPublicUrl(filePath);
 
-      await supabase
+      const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: data.publicUrl })
         .eq("id", user.id);
+
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        setUploadStatus("Chargement NOK");
+        return;
+      }
 
       setProfile({
         ...profile,
@@ -85,7 +90,8 @@ export default function SettingsPage() {
       });
 
       setUploadStatus("Chargement OK");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setUploadStatus("Chargement NOK");
     }
   };
@@ -160,9 +166,6 @@ export default function SettingsPage() {
     URL.revokeObjectURL(url);
   };
 
-  /* ============================
-     DELETE ACCOUNT
-  =============================*/
   const confirmDeleteAccount = async () => {
     if (deleteInput !== "SUPPRIMER") return;
 
@@ -247,18 +250,85 @@ export default function SettingsPage() {
 
           <button
             onClick={handleSignOutAll}
-            className="px-4 py-2 bg-blue-950 text-white rounded-xl text-sm hover:bg-blue-900 transition"
+            className="px-4 py-2 bg-blue-950 text-white rounded-xl text-sm"
           >
             Déconnexion tous les appareils
           </button>
         </div>
+
       </div>
 
-      {/* RESTE DE LA PAGE IDENTIQUE (Partager, Accès rapide, Données, Delete modal, Version) */}
+      {/* PARTAGER */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-semibold text-lg">
+          Partager l'application
+        </h2>
 
+        <button
+          onClick={handleShare}
+          className="px-4 py-2 bg-black text-white rounded-xl text-sm"
+        >
+          Partager
+        </button>
+      </div>
+
+      {/* ACCÈS RAPIDE */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-semibold text-lg">
+          Accès rapide
+        </h2>
+
+        <div className="flex gap-4 flex-wrap">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="px-4 py-2 bg-gray-200 rounded-xl text-sm"
+          >
+            Tableau de bord
+          </button>
+
+          <button
+            onClick={() => router.push("/dashboard/tasks")}
+            className="px-4 py-2 bg-gray-200 rounded-xl text-sm"
+          >
+            Tâches
+          </button>
+
+          <button
+            onClick={() => router.push("/dashboard/memoire")}
+            className="px-4 py-2 bg-gray-200 rounded-xl text-sm"
+          >
+            Mémoire
+          </button>
+        </div>
+      </div>
+
+      {/* DONNÉES */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <h2 className="font-semibold text-lg">
+          Données
+        </h2>
+
+        <div className="flex gap-4 flex-wrap">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-gray-200 rounded-xl text-sm"
+          >
+            Exporter mes données
+          </button>
+
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm"
+          >
+            Supprimer mon compte
+          </button>
+        </div>
+      </div>
+
+      {/* VERSION */}
       <div className="text-center text-xs text-gray-400 pt-10">
         My Hyppocampe<br />
-        Version 2.3<br />
+        Version 2.4<br />
         Built by Fred 🧠
       </div>
 
