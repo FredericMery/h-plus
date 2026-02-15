@@ -9,10 +9,15 @@ export const metadata = {
   manifest: "/manifest.json",
   themeColor: "#0f172a",
   icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png"
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png"
   }
 };
+
+export const viewport = {
+  themeColor: "#4f46e5"
+}
+
 
 
 export default function RootLayout({
