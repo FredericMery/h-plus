@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useTaskStore } from "@/store/taskStore";
 import { useAuthStore } from "@/store/authStore";
 import TaskModal from "@/components/TaskModal";
@@ -61,11 +61,28 @@ export default function DashboardPage() {
       task.archived === showArchived
   );
 
+  // 🔥 COMPTEURS DISCRETS
+  const proActiveCount = useMemo(
+    () =>
+      tasks.filter(
+        (t) => t.type === "pro" && !t.archived
+      ).length,
+    [tasks]
+  );
+
+  const persoActiveCount = useMemo(
+    () =>
+      tasks.filter(
+        (t) => t.type === "perso" && !t.archived
+      ).length,
+    [tasks]
+  );
+
   return (
     <div className="min-h-screen bg-black text-white px-6 py-10">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center mb-2">
 
         <div className="flex gap-2">
 
@@ -89,7 +106,6 @@ export default function DashboardPage() {
           >
             MÉMOIRE
           </Link>
-
         </div>
 
         <button
@@ -98,6 +114,11 @@ export default function DashboardPage() {
         >
           +
         </button>
+      </div>
+
+      {/* 🔥 SYNTHÈSE DISCRÈTE */}
+      <div className="text-xs text-gray-500 mb-6">
+        {proActiveCount} PRO actives • {persoActiveCount} PERSO actives
       </div>
 
       {/* TOGGLE ARCHIVE */}
@@ -129,7 +150,6 @@ export default function DashboardPage() {
                 )
               }
             >
-              {/* TITRE + CORBEILLE */}
               <div className="flex justify-between items-start">
                 <div className="text-sm font-light tracking-wide text-gray-200">
                   {task.title}
@@ -146,7 +166,6 @@ export default function DashboardPage() {
                 </button>
               </div>
 
-              {/* STATUT + DEADLINE */}
               <div className="flex justify-between items-center mt-3">
 
                 <div
@@ -169,7 +188,6 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* STATUTS AU CLIC */}
               {expandedTaskId === task.id && (
                 <div className="flex gap-2 mt-4 flex-wrap">
                   {statuses.map((status) => (

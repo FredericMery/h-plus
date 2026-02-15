@@ -81,8 +81,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   updateStatus: async (taskId, newStatus) => {
     const updateData: any = { status: newStatus };
 
+    // 🔥 LOGIQUE INTELLIGENTE
     if (newStatus === "done") {
       updateData.archived = true;
+    } else {
+      updateData.archived = false; // restauration auto
     }
 
     await supabase.from("tasks").update(updateData).eq("id", taskId);
