@@ -19,21 +19,49 @@ export default function SettingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
 
+  /* ============================
+     FETCH PROFILE SAFE
+  =============================*/
   useEffect(() => {
     if (!user) return;
 
-    const fetchProfile = async () => {
-      const { data } = await supabase
+    const fetchOrCreateProfile = async () => {
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
 
-      setProfile(data);
-      setPreviewAvatar(data?.avatar_url || null);
+      if (error && error.code === "PGRST116") {
+        // Pas de profil → on le crée
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            username: user.email?.split("@")[0],
+            avatar_url: null,
+          })
+          .select()
+          .single();
+
+        setProfile(newProfile);
+        return;
+      }
+
+      if (error) {
+        console.error("Profile fetch error:", error);
+        return;
+      }
+
+      if (data) {
+        setProfile(data);
+        if (data.avatar_url) {
+          setPreviewAvatar(data.avatar_url);
+        }
+      }
     };
 
-    fetchProfile();
+    fetchOrCreateProfile();
   }, [user]);
 
   if (!user) return null;
@@ -51,8 +79,8 @@ export default function SettingsPage() {
     if (!e.target.files?.[0]) return;
 
     const file = e.target.files[0];
-
     const localPreview = URL.createObjectURL(file);
+
     setPreviewAvatar(localPreview);
     setUploadStatus("Chargement...");
 
@@ -84,11 +112,12 @@ export default function SettingsPage() {
         return;
       }
 
-      setProfile({
-        ...profile,
+      setProfile((prev: any) => ({
+        ...prev,
         avatar_url: data.publicUrl,
-      });
+      }));
 
+      setPreviewAvatar(data.publicUrl);
       setUploadStatus("Chargement OK");
     } catch (err) {
       console.error(err);
@@ -257,6 +286,7 @@ export default function SettingsPage() {
         </div>
 
       </div>
+
 
       {/* PARTAGER */}
       <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
