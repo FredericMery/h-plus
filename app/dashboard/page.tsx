@@ -13,7 +13,6 @@ export default function DashboardPage() {
     tasks,
     fetchTasks,
     updateStatus,
-    addTask,
     deleteTask,
     activeType,
     setActiveType,
@@ -23,26 +22,14 @@ export default function DashboardPage() {
   const [selectedTaskId, setSelectedTaskId] =
     useState<string | null>(null);
 
-  const [showArchived, setShowArchived] =
-    useState(false);
-
-  const [showForm, setShowForm] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDeadline, setNewDeadline] = useState("");
-
-  const statuses = [
-    "todo",
-    "in_progress",
-    "waiting",
-    "done",
-  ];
+  const statuses = ["todo", "in_progress", "waiting", "done"];
 
   const getStatusStyle = (status: string) => {
     switch (status) {
       case "done":
         return "bg-green-500/20 text-green-400";
       case "in_progress":
-        return "bg-blue-500/20 text-blue-400";
+        return "bg-indigo-500/20 text-indigo-400";
       case "waiting":
         return "bg-yellow-500/20 text-yellow-400";
       default:
@@ -56,22 +43,21 @@ export default function DashboardPage() {
     subscribeRealtime();
   }, [user]);
 
-  // PRO actif par défaut
   useEffect(() => {
     setActiveType("pro");
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1e1b4b] text-white px-3 pt-6 pb-28">
+    <div className="space-y-8">
 
-      {/* 🔥 QUICK ACCESS BAR */}
-      <div className="flex gap-3 mb-8">
+      {/* Quick Access */}
+      <div className="flex gap-3">
         <button
           onClick={() => setActiveType("pro")}
           className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
             activeType === "pro"
-              ? "bg-indigo-600 shadow-lg"
-              : "bg-white/10 text-gray-300"
+              ? "bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
           }`}
         >
           PRO
@@ -81,8 +67,8 @@ export default function DashboardPage() {
           onClick={() => setActiveType("perso")}
           className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
             activeType === "perso"
-              ? "bg-indigo-600 shadow-lg"
-              : "bg-white/10 text-gray-300"
+              ? "bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg"
+              : "bg-white/5 text-gray-400 hover:bg-white/10"
           }`}
         >
           PERSO
@@ -90,20 +76,16 @@ export default function DashboardPage() {
 
         <Link
           href="/dashboard/memoire"
-          className="flex-1 py-2 rounded-full text-sm font-medium bg-white/10 text-gray-300 text-center hover:bg-white/20 transition"
+          className="flex-1 py-2 rounded-full text-sm font-medium bg-white/5 text-gray-400 text-center hover:bg-white/10 transition"
         >
           MÉMOIRE
         </Link>
       </div>
 
-      {/* TASK LIST */}
+      {/* Tasks */}
       <div className="space-y-4">
         {tasks
-          .filter(
-            (task) =>
-              task.type === activeType &&
-              task.archived === showArchived
-          )
+          .filter((task) => task.type === activeType && !task.archived)
           .map((task) => (
             <div key={task.id}>
               <div
@@ -112,32 +94,17 @@ export default function DashboardPage() {
                     selectedTaskId === task.id ? null : task.id
                   )
                 }
-                className={`w-full bg-white/5 backdrop-blur-md p-5 rounded-2xl shadow-xl border-l-4 cursor-pointer transition active:scale-[0.98] ${
-                  task.deadline &&
-                  new Date(task.deadline) <
-                    new Date(new Date().toDateString())
-                    ? "border-red-500"
-                    : "border-indigo-500"
-                }`}
+                className="w-full bg-white/[0.04] border border-white/5 p-5 rounded-2xl backdrop-blur-xl shadow-xl cursor-pointer transition hover:bg-white/[0.06]"
               >
                 <div className="flex justify-between items-start">
-
-                  <div className="pr-4">
-                    <p className="text-base font-medium leading-snug">
+                  <div>
+                    <p className="text-sm md:text-base font-medium">
                       {task.title}
                     </p>
 
                     {task.deadline && (
-                      <p
-                        className={`text-xs mt-2 ${
-                          new Date(task.deadline) <
-                          new Date(new Date().toDateString())
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        }`}
-                      >
-                        📅{" "}
-                        {new Date(task.deadline).toLocaleDateString("fr-FR")}
+                      <p className="text-xs text-gray-500 mt-2">
+                        📅 {new Date(task.deadline).toLocaleDateString("fr-FR")}
                       </p>
                     )}
                   </div>
@@ -175,8 +142,8 @@ export default function DashboardPage() {
                       }}
                       className={`px-3 py-1 text-xs rounded-full transition ${
                         status === task.status
-                          ? "bg-indigo-600 text-white"
-                          : "bg-white/10 text-gray-300 hover:bg-white/20"
+                          ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                          : "bg-white/5 text-gray-400 hover:bg-white/10"
                       }`}
                     >
                       {status.replace("_", " ")}
@@ -188,7 +155,7 @@ export default function DashboardPage() {
           ))}
       </div>
 
-      <FloatingButton onClick={() => setShowForm(true)} />
+      <FloatingButton onClick={() => console.log("Add Task")} />
     </div>
   );
 }

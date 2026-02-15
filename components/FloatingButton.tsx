@@ -1,10 +1,10 @@
 "use client";
 
-export default function FloatingButton({
-  onClick,
-}: {
-  onClick: () => void;
-}) {
+type Props = {
+  onClick?: () => void;
+};
+
+export default function FloatingButton({ onClick }: Props) {
   return (
     <button
       onClick={onClick}
@@ -18,8 +18,7 @@ export default function FloatingButton({
         active:scale-95
         transition
         flex items-center justify-center
-        "
-
+      "
     >
       +
     </button>

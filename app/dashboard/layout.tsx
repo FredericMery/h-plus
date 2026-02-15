@@ -1,10 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 
 export default function DashboardLayout({
@@ -16,9 +14,6 @@ export default function DashboardLayout({
   const loading = useAuthStore((state) => state.loading);
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-
 
   useEffect(() => {
     if (!loading && !user) {
@@ -26,139 +21,65 @@ export default function DashboardLayout({
     }
   }, [user, loading]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return null;
 
   return (
-  <div className="flex min-h-screen bg-gray-50">
-    {/* Sidebar desktop */}
-    <div className="hidden md:flex w-64 bg-white border-r p-6 flex-col">
-      <div className="flex items-center gap-3 mb-10">
-        <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg text-white text-xl font-bold">
-          +
+    <div className="min-h-screen bg-[#0b0f1a] text-white">
+      
+      {/* Top header */}
+      <header className="px-6 py-4 border-b border-white/5 backdrop-blur-xl bg-white/[0.02] sticky top-0 z-40">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-lg">
+              +
+            </div>
+            <span className="font-semibold tracking-wide text-sm opacity-90">
+              H+ Control
+            </span>
+          </div>
+
+          <nav className="flex gap-6 text-sm">
+            <Link
+              href="/dashboard"
+              className={`transition ${
+                pathname === "/dashboard"
+                  ? "text-indigo-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Tasks
+            </Link>
+
+            <Link
+              href="/dashboard/memoire"
+              className={`transition ${
+                pathname.startsWith("/dashboard/memoire")
+                  ? "text-indigo-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Mémoire
+            </Link>
+
+            <Link
+              href="/dashboard/settings"
+              className={`transition ${
+                pathname.startsWith("/dashboard/settings")
+                  ? "text-indigo-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Settings
+            </Link>
+          </nav>
         </div>
-        <span className="text-lg font-semibold">
-          My Hyppocampe
-        </span>
-      </div>
-
-      <nav className="flex flex-col gap-2">
-  <Link
-    href="/dashboard"
-    className={`px-3 py-2 rounded-lg text-sm transition ${
-      pathname === "/dashboard"
-        ? "bg-black text-white"
-        : "text-gray-600 hover:bg-gray-200"
-    }`}
-  >
-    Tasks
-  </Link>
-
-  <Link
-    href="/dashboard/memoire"
-    className={`px-3 py-2 rounded-lg text-sm transition ${
-      pathname.startsWith("/dashboard/memoire")
-        ? "bg-black text-white"
-        : "text-gray-600 hover:bg-gray-200"
-    }`}
-  >
-    Memory
-  </Link>
-
-  <Link
-    href="/dashboard/settings"
-    className={`px-3 py-2 rounded-lg text-sm transition ${
-      pathname.startsWith("/dashboard/settings")
-        ? "bg-black text-white"
-        : "text-gray-600 hover:bg-gray-200"
-    }`}
-  >
-    Settings
-  </Link>
-</nav>
-
-
-
-    </div>
-
-    {/* Main */}
-    <div className="flex-1 flex flex-col">
-      {/* Mobile header */}
-      <div className="md:hidden flex items-center justify-between bg-white border-b p-4">
-  <button
-    onClick={() => setMobileOpen(true)}
-    className="text-gray-600"
-  >
-    ☰
-  </button>
-
-  <div className="flex items-center gap-2">
-    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
-      +
-    </div>
-    <span className="font-semibold">
-      My Hyppocampe
-    </span>
-  </div>
-
-  <div className="w-6" />
-</div>
-
-
-{/* Mobile Drawer */}
-{mobileOpen && (
-  <div className="fixed inset-0 z-50 flex">
-    {/* Overlay */}
-    <div
-      className="fixed inset-0 bg-black/30"
-      onClick={() => setMobileOpen(false)}
-    />
-
-    {/* Drawer */}
-    <div className="relative w-64 bg-white p-6 shadow-xl">
-      <button
-        onClick={() => setMobileOpen(false)}
-        className="mb-6 text-gray-500"
-      >
-        ✕
-      </button>
-
-      <nav className="flex flex-col gap-2">
-        <Link
-          href="/dashboard"
-          onClick={() => setMobileOpen(false)}
-          className="px-3 py-2 rounded-lg text-sm hover:bg-gray-200"
-        >
-          Tasks
-        </Link>
-
-        <Link
-          href="/dashboard/memoire"
-          onClick={() => setMobileOpen(false)}
-          className="px-3 py-2 rounded-lg text-sm hover:bg-gray-200"
-        >
-          Memory
-        </Link>
-
-        <Link
-          href="/dashboard/settings"
-          onClick={() => setMobileOpen(false)}
-          className="px-3 py-2 rounded-lg text-sm hover:bg-gray-200"
-        >
-          Settings
-        </Link>
-      </nav>
-    </div>
-  </div>
-)}
-
-
+      </header>
 
       {/* Content */}
-      <div className="p-6 md:p-10">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-8 pb-24">
         {children}
-      </div>
+      </main>
     </div>
-  </div>
-);
-
+  );
 }
