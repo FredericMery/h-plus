@@ -10,6 +10,7 @@ type Section = {
   name: string;
   slug: string;
   allow_image: boolean;
+  user_id: string;
 };
 
 export default function MemoirePage() {
@@ -23,6 +24,7 @@ export default function MemoirePage() {
   const [allowImage, setAllowImage] = useState(true);
   const [templateParts, setTemplateParts] = useState<string[]>([]);
 
+  // 🔹 INITIAL LOAD + REALTIME
   useEffect(() => {
     if (!user) return;
 
@@ -37,6 +39,43 @@ export default function MemoirePage() {
     };
 
     fetchSections();
+
+    // 🔥 REALTIME SUBSCRIPTION
+    const channel = supabase
+      .channel("memory_sections_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "memory_sections",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setSections((prev) => [payload.new as Section, ...prev]);
+          }
+
+          if (payload.eventType === "DELETE") {
+            setSections((prev) =>
+              prev.filter((s) => s.id !== payload.old.id)
+            );
+          }
+
+          if (payload.eventType === "UPDATE") {
+            setSections((prev) =>
+              prev.map((s) =>
+                s.id === payload.new.id ? (payload.new as Section) : s
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const createSection = async () => {
@@ -78,7 +117,6 @@ export default function MemoirePage() {
       );
     }
 
-    setSections([sectionData, ...sections]);
     resetForm();
   };
 
@@ -88,8 +126,6 @@ export default function MemoirePage() {
     await supabase.from("memory_section_fields").delete().eq("section_id", id);
     await supabase.from("memory_items").delete().eq("section_id", id);
     await supabase.from("memory_sections").delete().eq("id", id);
-
-    setSections(sections.filter((section) => section.id !== id));
   };
 
   const resetForm = () => {
@@ -101,10 +137,12 @@ export default function MemoirePage() {
   };
 
   return (
-    <div>
+    <div className="text-blue-950">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Mémoire</h1>
+        <h1 className="text-2xl font-semibold">
+          Mémoire
+        </h1>
 
         <button
           onClick={() => setShowForm(true)}
@@ -125,7 +163,9 @@ export default function MemoirePage() {
               href={`/dashboard/memoire/${section.slug}`}
               className="flex-1"
             >
-              <h2 className="font-medium text-lg">{section.name}</h2>
+              <h2 className="font-medium text-lg">
+                {section.name}
+              </h2>
             </Link>
 
             <button
@@ -138,18 +178,17 @@ export default function MemoirePage() {
         ))}
       </div>
 
-      {/* FORMULAIRE CREATION */}
+      {/* FORMULAIRE */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-50 w-full max-w-xl rounded-3xl shadow-xl p-8 space-y-6">
+          <div className="bg-gray-50 w-full max-w-xl rounded-3xl shadow-xl p-8 space-y-6 text-blue-950">
 
             <h2 className="text-xl font-semibold">
               Créer une nouvelle section mémoire
             </h2>
 
-            {/* NOM */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium">
                 Nom de la section
               </label>
               <input
@@ -159,9 +198,8 @@ export default function MemoirePage() {
               />
             </div>
 
-            {/* CHAMPS PERSONNALISÉS */}
             <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium">
                 Champs personnalisés
               </p>
 
@@ -180,10 +218,11 @@ export default function MemoirePage() {
               ))}
             </div>
 
-            {/* PHOTO */}
             <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200">
               <div>
-                <p className="text-sm font-medium">Autoriser une photo</p>
+                <p className="text-sm font-medium">
+                  Autoriser une photo
+                </p>
                 <p className="text-xs text-gray-500">
                   Permet d’ajouter une image à chaque fiche mémoire
                 </p>
@@ -197,9 +236,8 @@ export default function MemoirePage() {
               />
             </div>
 
-            {/* TEMPLATE */}
             <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium">
                 Template de recherche Internet
               </p>
 
@@ -231,12 +269,11 @@ export default function MemoirePage() {
                   ))}
               </div>
 
-              <div className="bg-white p-3 rounded-xl border text-sm text-gray-600 min-h-[40px]">
+              <div className="bg-white p-3 rounded-xl border text-sm min-h-[40px]">
                 {templateParts.join(" ") || "Aucun template défini"}
               </div>
             </div>
 
-            {/* ACTIONS */}
             <div className="flex justify-end gap-4 pt-4">
               <button
                 onClick={resetForm}
