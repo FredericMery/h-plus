@@ -4,21 +4,20 @@ import ThemeProvider from "@/components/providers/ThemeProvider";
 
 export const metadata = {
   title: "H+ – Mémorises ce qui compte",
-  description: "H+ est votre espace personnel intelligent pour mémoriser, organiser et agir sur ce qui compte.",
+  description:
+    "H+ est votre espace personnel intelligent pour mémoriser, organiser et agir sur ce qui compte.",
   applicationName: "H+",
   manifest: "/manifest.json",
   themeColor: "#0f172a",
   icons: {
     icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png"
-  }
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport = {
-  themeColor: "#4f46e5"
-}
-
-
+  themeColor: "#4f46e5",
+};
 
 export default function RootLayout({
   children,
@@ -26,12 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body>
+    <html lang="fr" suppressHydrationWarning>
+      <body className="bg-black text-white antialiased">
         <AuthProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </AuthProvider>
       </body>
     </html>

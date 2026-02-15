@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTaskStore } from "@/store/taskStore";
 import { useAuthStore } from "@/store/authStore";
-import FloatingButton from "@/components/FloatingButton";
+import TaskModal from "@/components/TaskModal";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -22,20 +22,9 @@ export default function DashboardPage() {
   const [selectedTaskId, setSelectedTaskId] =
     useState<string | null>(null);
 
-  const statuses = ["todo", "in_progress", "waiting", "done"];
+  const [showModal, setShowModal] = useState(false);
 
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "done":
-        return "bg-green-500/20 text-green-400";
-      case "in_progress":
-        return "bg-indigo-500/20 text-indigo-400";
-      case "waiting":
-        return "bg-yellow-500/20 text-yellow-400";
-      default:
-        return "bg-white/10 text-gray-300";
-    }
-  };
+  const statuses = ["todo", "in_progress", "waiting", "done"];
 
   useEffect(() => {
     if (!user) return;
@@ -48,114 +37,76 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-black text-white px-6 py-8">
 
-      {/* Quick Access */}
-      <div className="flex gap-3">
+      {/* HEADER ACTION BAR */}
+      <div className="flex justify-between items-center mb-8">
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => setActiveType("pro")}
+            className={`px-4 py-2 rounded-xl ${
+              activeType === "pro"
+                ? "bg-indigo-600"
+                : "bg-white/10"
+            }`}
+          >
+            PRO
+          </button>
+
+          <button
+            onClick={() => setActiveType("perso")}
+            className={`px-4 py-2 rounded-xl ${
+              activeType === "perso"
+                ? "bg-indigo-600"
+                : "bg-white/10"
+            }`}
+          >
+            PERSO
+          </button>
+
+          <Link
+            href="/dashboard/memoire"
+            className="px-4 py-2 rounded-xl bg-white/10"
+          >
+            MÉMOIRE
+          </Link>
+        </div>
+
+        {/* SIMPLE + BUTTON */}
         <button
-          onClick={() => setActiveType("pro")}
-          className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-            activeType === "pro"
-              ? "bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg"
-              : "bg-white/5 text-gray-400 hover:bg-white/10"
-          }`}
+          onClick={() => setShowModal(true)}
+          className="w-10 h-10 rounded-xl bg-indigo-600 text-xl flex items-center justify-center"
         >
-          PRO
+          +
         </button>
-
-        <button
-          onClick={() => setActiveType("perso")}
-          className={`flex-1 py-2 rounded-full text-sm font-medium transition ${
-            activeType === "perso"
-              ? "bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg"
-              : "bg-white/5 text-gray-400 hover:bg-white/10"
-          }`}
-        >
-          PERSO
-        </button>
-
-        <Link
-          href="/dashboard/memoire"
-          className="flex-1 py-2 rounded-full text-sm font-medium bg-white/5 text-gray-400 text-center hover:bg-white/10 transition"
-        >
-          MÉMOIRE
-        </Link>
       </div>
 
-      {/* Tasks */}
+      {/* TASKS */}
       <div className="space-y-4">
         {tasks
           .filter((task) => task.type === activeType && !task.archived)
           .map((task) => (
-            <div key={task.id}>
-              <div
-                onClick={() =>
-                  setSelectedTaskId(
-                    selectedTaskId === task.id ? null : task.id
-                  )
-                }
-                className="w-full bg-white/[0.04] border border-white/5 p-5 rounded-2xl backdrop-blur-xl shadow-xl cursor-pointer transition hover:bg-white/[0.06]"
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-sm md:text-base font-medium">
-                      {task.title}
-                    </p>
+            <div
+              key={task.id}
+              className="bg-white/5 p-4 rounded-xl"
+            >
+              <div className="flex justify-between">
+                <span>{task.title}</span>
 
-                    {task.deadline && (
-                      <p className="text-xs text-gray-500 mt-2">
-                        📅 {new Date(task.deadline).toLocaleDateString("fr-FR")}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    <span
-                      className={`text-[11px] px-3 py-1 rounded-full ${getStatusStyle(
-                        task.status
-                      )}`}
-                    >
-                      {task.status.replace("_", " ")}
-                    </span>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTask(task.id);
-                      }}
-                      className="text-gray-500 hover:text-red-400 transition"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </div>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="text-red-400"
+                >
+                  🗑
+                </button>
               </div>
-
-              {selectedTaskId === task.id && (
-                <div className="mt-3 flex gap-2 flex-wrap">
-                  {statuses.map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        updateStatus(task.id, status);
-                        setSelectedTaskId(null);
-                      }}
-                      className={`px-3 py-1 text-xs rounded-full transition ${
-                        status === task.status
-                          ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
-                          : "bg-white/5 text-gray-400 hover:bg-white/10"
-                      }`}
-                    >
-                      {status.replace("_", " ")}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
       </div>
 
-      <FloatingButton onClick={() => console.log("Add Task")} />
+      {/* MODAL */}
+      <TaskModal open={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 }

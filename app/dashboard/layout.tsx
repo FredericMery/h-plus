@@ -17,18 +17,27 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.replace("/login");
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
-  if (loading) return null;
+  // 🔥 IMPORTANT : PAS D’OVERLAY FIXED
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="animate-pulse text-indigo-500">
+          Chargement...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-white">
-      
-      {/* Top header */}
-      <header className="px-6 py-4 border-b border-white/5 backdrop-blur-xl bg-white/[0.02] sticky top-0 z-40">
-        <div className="flex items-center justify-between max-w-5xl mx-auto">
+    <div className="min-h-screen flex flex-col bg-black text-white">
+
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-white/5 backdrop-blur-xl bg-black/70">
+        <div className="flex items-center justify-between max-w-5xl mx-auto px-6 py-4">
           
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-lg">
@@ -76,8 +85,8 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-8 pb-24">
+      {/* Page Content */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-6 pt-8 pb-24">
         {children}
       </main>
     </div>
