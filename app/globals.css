@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@media (prefers-color-scheme: dark) {
+  html.dark {
+    background-color: #111;
+    color: white;
+  }
+}
+
+
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -23,4 +32,62 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== STYLES ===== */
+
+:root[data-style="apple"] {
+  --primary: #000000;
+}
+
+:root[data-style="startup"] {
+  --primary: #6366f1;
+}
+
+:root[data-style="colorful"] {
+  --primary: #f43f5e;
+}
+
+:root[data-style="tech"] {
+  --primary: #06b6d4;
+}
+
+
+/* ============================= */
+/* DESIGN SYSTEM */
+/* ============================= */
+
+:root[data-style="apple"] {
+  --primary: #000000;
+  --primary-soft: #f3f4f6;
+  --card-bg: #ffffff;
+  --border-soft: #e5e7eb;
+}
+
+:root[data-style="startup"] {
+  --primary: #6366f1;
+  --primary-soft: #eef2ff;
+  --card-bg: #ffffff;
+  --border-soft: #e0e7ff;
+}
+
+:root[data-style="colorful"] {
+  --primary: #f43f5e;
+  --primary-soft: #ffe4e6;
+  --card-bg: #ffffff;
+  --border-soft: #fecdd3;
+}
+
+:root[data-style="tech"] {
+  --primary: #06b6d4;
+  --primary-soft: #ecfeff;
+  --card-bg: #ffffff;
+  --border-soft: #cffafe;
+}
+
+/* DARK MODE VARIABLES */
+
+.dark {
+  --card-bg: #1f2937;
+  --border-soft: #374151;
 }
