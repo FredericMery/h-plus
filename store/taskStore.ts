@@ -10,7 +10,6 @@ export type Task = {
   deadline: string | null;
   user_id: string;
   archived: boolean;
-
 };
 
 type TaskState = {
@@ -21,11 +20,12 @@ type TaskState = {
   setActiveType: (type: "perso" | "pro") => void;
 
   fetchTasks: () => Promise<void>;
+
   addTask: (
-  title: string,
-  type: "perso" | "pro",
-  deadline?: string | null
-) => Promise<void>;
+    title: string,
+    type: "perso" | "pro",
+    deadline: Date | null
+  ) => Promise<void>;
 
   updateStatus: (taskId: string, newStatus: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -33,7 +33,7 @@ type TaskState = {
   subscribeRealtime: () => void;
 };
 
-let channel: any = null; // channel global unique
+let channel: any = null;
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
@@ -54,43 +54,40 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set({ tasks: data || [] });
   },
 
-  addTask: async (title, type, deadline = null) => {
-  const user = useAuthStore.getState().user;
-  if (!user) return;
+  addTask: async (
+    title: string,
+    type: "perso" | "pro",
+    deadline: Date | null
+  ) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
 
-  await supabase.from("tasks").insert([
-    {
+    await supabase.from("tasks").insert({
       title,
       type,
       status: "todo",
-      deadline,
+      deadline: deadline ? deadline.toISOString() : null,
       user_id: user.id,
-    },
-  ]);
-},
-
+      archived: false,
+    });
+  },
 
   updateStatus: async (taskId, newStatus) => {
-  const updateData: any = { status: newStatus };
+    const updateData: any = { status: newStatus };
 
-  if (newStatus === "done") {
-    updateData.archived = true;
-  }
+    if (newStatus === "done") {
+      updateData.archived = true;
+    }
 
-  await supabase
-    .from("tasks")
-    .update(updateData)
-    .eq("id", taskId);
-},
+    await supabase.from("tasks").update(updateData).eq("id", taskId);
+  },
 
-deleteTask: async (taskId) => {
-  await supabase.from("tasks").delete().eq("id", taskId);
-},
-
-
+  deleteTask: async (taskId) => {
+    await supabase.from("tasks").delete().eq("id", taskId);
+  },
 
   subscribeRealtime: () => {
-    if (channel) return; // évite double subscription
+    if (channel) return;
 
     channel = supabase
       .channel("tasks-realtime")
