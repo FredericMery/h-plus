@@ -24,6 +24,8 @@ type Item = {
   image_url: string | null;
   rating: number | null;
   extra_data: Record<string, string>;
+  section_id: string;
+  user_id: string;
 };
 
 export default function SectionPage() {
@@ -42,6 +44,7 @@ export default function SectionPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showForm, setShowForm] = useState(false);
 
+  // 🔹 INIT + REALTIME ITEMS
   useEffect(() => {
     if (!user || !slug) return;
 
@@ -72,6 +75,46 @@ export default function SectionPage() {
         .order("created_at", { ascending: false });
 
       setItems(itemData || []);
+
+      // 🔥 REALTIME
+      const channel = supabase
+        .channel("memory_items_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "memory_items",
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setItems((prev) => {
+                if (prev.find((i) => i.id === payload.new.id)) return prev;
+                return [payload.new as Item, ...prev];
+              });
+            }
+
+            if (payload.eventType === "DELETE") {
+              setItems((prev) =>
+                prev.filter((i) => i.id !== payload.old.id)
+              );
+            }
+
+            if (payload.eventType === "UPDATE") {
+              setItems((prev) =>
+                prev.map((i) =>
+                  i.id === payload.new.id ? (payload.new as Item) : i
+                )
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     };
 
     init();
@@ -110,6 +153,7 @@ export default function SectionPage() {
       }
     }
 
+    // 🔥 INSERT
     const { data } = await supabase
       .from("memory_items")
       .insert([
@@ -126,7 +170,11 @@ export default function SectionPage() {
       .single();
 
     if (data) {
-      setItems([data, ...items]);
+      // 🔥 OPTIMISTIC UPDATE
+      setItems((prev) => {
+        if (prev.find((i) => i.id === data.id)) return prev;
+        return [data, ...prev];
+      });
       resetForm();
     }
   };
@@ -135,7 +183,6 @@ export default function SectionPage() {
     if (!confirm("Supprimer cette entrée ?")) return;
 
     await supabase.from("memory_items").delete().eq("id", id);
-    setItems(items.filter((item) => item.id !== id));
   };
 
   const resetForm = () => {
@@ -182,7 +229,6 @@ export default function SectionPage() {
       <div className="grid gap-6">
 
         {items.map((item) => {
-
           const searchUrl = buildSearchUrl(item);
 
           return (
@@ -190,19 +236,14 @@ export default function SectionPage() {
               key={item.id}
               className="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-6 flex gap-6"
             >
-
-              {/* CONTENU TEXTE */}
               <div className="flex-1 space-y-3">
 
                 <div className="flex justify-between items-start">
-
                   <h2 className="font-semibold text-lg">
                     {item.title}
                   </h2>
 
                   <div className="flex gap-3 items-center">
-
-                    {/* Pastille recherche */}
                     {searchUrl && (
                       <button
                         onClick={() => window.open(searchUrl, "_blank")}
@@ -218,7 +259,6 @@ export default function SectionPage() {
                     >
                       🗑
                     </button>
-
                   </div>
                 </div>
 
@@ -238,7 +278,6 @@ export default function SectionPage() {
                 })}
               </div>
 
-              {/* IMAGE A DROITE */}
               {item.image_url && (
                 <div
                   className="w-40 aspect-square shrink-0 cursor-pointer"
@@ -250,7 +289,6 @@ export default function SectionPage() {
                   />
                 </div>
               )}
-
             </div>
           );
         })}
