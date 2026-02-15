@@ -125,18 +125,6 @@ export default function SectionPage() {
     setItems(items.filter((item) => item.id !== id));
   };
 
-  const buildSearchUrl = (item: Item) => {
-    if (!section?.search_template) return null;
-
-    let query = section.search_template.replace(/\$\{title\}/g, item.title);
-
-    Object.entries(item.extra_data || {}).forEach(([key, value]) => {
-      query = query.replace(new RegExp(`\\$\\{${key}\\}`, "g"), String(value));
-    });
-
-    return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-  };
-
   const resetForm = () => {
     setTitle("");
     setRating(0);
@@ -148,75 +136,126 @@ export default function SectionPage() {
   if (!section) return <div>Loading...</div>;
 
   return (
-    <div>
+    <div className="text-blue-950">
+
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">{section.name}</h1>
+        <h1 className="text-2xl font-semibold">
+          {section.name}
+        </h1>
 
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-black text-white rounded-xl text-sm"
+          className="px-4 py-2 bg-black text-white rounded-xl text-sm hover:opacity-80 transition"
         >
-          +
+          + Fiche
         </button>
       </div>
 
+      {/* MODAL FORMULAIRE PREMIUM */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Nouvelle entrée</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-50 w-full max-w-xl rounded-3xl shadow-xl p-8 space-y-6">
 
-            <input
-              placeholder="Titre"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 border rounded-xl mb-4"
-            />
+            <h2 className="text-xl font-semibold">
+              Nouvelle fiche mémoire
+            </h2>
 
-            {section.allow_image && (
+            {/* TITRE */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Titre
+              </label>
               <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    setImageFile(e.target.files[0]);
-                  }
-                }}
-                className="mb-4"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
               />
+            </div>
+
+            {/* PHOTO */}
+            {section.allow_image && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Photo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setImageFile(e.target.files[0]);
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
             )}
 
+            {/* NOTE */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Note
+              </label>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-2xl transition ${
+                      rating >= star
+                        ? "text-yellow-500"
+                        : "text-gray-300"
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* CHAMPS PERSONNALISÉS */}
             {fields.map((field) => (
-              <input
-                key={field.id}
-                placeholder={field.label}
-                value={extraData[field.field_key] || ""}
-                onChange={(e) =>
-                  setExtraData({
-                    ...extraData,
-                    [field.field_key]: e.target.value,
-                  })
-                }
-                className="w-full p-3 border rounded-xl mb-3"
-              />
+              <div key={field.id} className="space-y-2">
+                <label className="text-sm font-medium">
+                  {field.label}
+                </label>
+                <input
+                  value={extraData[field.field_key] || ""}
+                  onChange={(e) =>
+                    setExtraData({
+                      ...extraData,
+                      [field.field_key]: e.target.value,
+                    })
+                  }
+                  className="w-full p-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
             ))}
 
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={resetForm} className="text-gray-500">
+            {/* ACTIONS */}
+            <div className="flex justify-end gap-4 pt-4">
+              <button
+                onClick={resetForm}
+                className="px-4 py-2 text-gray-600"
+              >
                 Annuler
               </button>
 
               <button
                 onClick={addItem}
-                className="bg-black text-white px-4 py-2 rounded-xl"
+                className="px-6 py-2 bg-black text-white rounded-xl hover:opacity-80 transition"
               >
                 Ajouter
               </button>
             </div>
+
           </div>
         </div>
       )}
 
+      {/* LISTE FICHES */}
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <div
@@ -224,7 +263,9 @@ export default function SectionPage() {
             className="bg-white p-6 rounded-2xl shadow-sm space-y-3 hover:shadow-md transition"
           >
             <div className="flex justify-between items-start">
-              <h2 className="font-semibold text-lg">{item.title}</h2>
+              <h2 className="font-semibold text-lg">
+                {item.title}
+              </h2>
 
               <button
                 onClick={() => deleteItem(item.id)}
@@ -241,6 +282,12 @@ export default function SectionPage() {
               />
             )}
 
+            {item.rating && (
+              <div className="text-yellow-500 text-sm">
+                {"★".repeat(item.rating)}
+              </div>
+            )}
+
             {Object.entries(item.extra_data || {}).map(([key, value]) => {
               const field = fields.find((f) => f.field_key === key);
               return (
@@ -249,19 +296,10 @@ export default function SectionPage() {
                 </p>
               );
             })}
-
-            <button
-              onClick={() => {
-                const url = buildSearchUrl(item);
-                if (url) window.open(url, "_blank");
-              }}
-              className="text-sm text-blue-600 underline"
-            >
-              🔎 Rechercher
-            </button>
           </div>
         ))}
       </div>
+
     </div>
   );
 }
