@@ -64,7 +64,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     });
   },
 
-  createNotification: async (title, message, link) => {
+ createNotification: async (title, message, link) => {
 
   const { data: sessionData } = await supabase.auth.getSession();
   const user = sessionData?.session?.user;
@@ -75,7 +75,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     .from("notifications")
     .insert({
       user_id: user.id,
-      type: "info", // 🔥 AJOUT IMPORTANT
+      type: "info",
       title,
       message,
       link: link || null,
@@ -84,6 +84,26 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   if (error) {
     console.error("INSERT ERROR:", error);
+    return;
+  }
+
+  // 🔥 Vérifier si push activé
+  const { data: settings } = await supabase
+    .from("notification_settings")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+
+  if (settings?.push_enabled) {
+    await fetch("/api/push/trigger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        title,
+        message,
+      }),
+    });
   }
 },
 
