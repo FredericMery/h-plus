@@ -8,3 +8,19 @@ self.addEventListener("push", function (event) {
     icon: "/icon-192.png",
   });
 });
+
+
+self.addEventListener("push", function (event) {
+  const data = event.data.json();
+
+  self.registration.showNotification(data.title, {
+    body: data.message,
+    icon: "/icon-192.png",
+    vibrate: [200, 100, 200],
+  });
+});
+
+if ("vibrate" in navigator) {
+  navigator.vibrate([200, 100, 200]);
+}
+
