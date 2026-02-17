@@ -8,7 +8,7 @@ export async function GET() {
   );
 
   // ⚠️ Mets TON user id ici pour le test
-  const userId = "COLLE_TON_USER_ID_ICI";
+  const userId = "63efeb2d-6b5f-486d-8163-7485b26b9329";
 
   const { error } = await supabase.from("notifications").insert({
     user_id: userId,
