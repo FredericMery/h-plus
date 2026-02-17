@@ -62,11 +62,7 @@ export default function DashboardPage() {
       new Date(task.deadline) < new Date() &&
       !task.archived
     ) {
-      createNotification(
-        "Deadline dépassée",
-        `La tâche "${task.title}" est en retard.`,
-        "/dashboard"
-      );
+      
     }
   });
 }, [tasks]);
